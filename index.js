@@ -1,20 +1,16 @@
 import 'dotenv/config'
-const express = require('express')
-const morgan = require('morgan')
-const cors = require('cors')
-const path = require('path')
-const Person = require('./models/person.js')
+import express from 'express'
+import morgan from 'morgan'
+import cors from 'cors'
+import Person from './models/person.js'
 
 const app = express()
 
-app.use(express.static(path.join(__dirname, 'dist')))
+app.use(express.static('dist'))
 app.use(express.json())
 app.use(cors())
 
-morgan.token('body', (req) => {
-  return req.method === 'POST' ? JSON.stringify(req.body) : ''
-})
-
+morgan.token('body', (req) => JSON.stringify(req.body))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 app.get('/api/persons', (request, response) => {
@@ -25,11 +21,8 @@ app.get('/api/persons', (request, response) => {
 
 app.get('/info', (request, response) => {
   Person.countDocuments({}).then(count => {
-    const info = `
-      <p>Phonebook has info for ${count} people</p>
-      <p>${new Date()}</p>
-    `
-    response.send(info)
+    const date = new Date()
+    response.send(`<p>Phonebook has info for ${count} people</p><p>${date}</p>`)
   })
 })
 
@@ -56,6 +49,10 @@ app.delete('/api/persons/:id', (request, response, next) => {
 app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
+  if (!body.name || !body.number) {
+    return response.status(400).json({ error: 'name or number missing' })
+  }
+
   const person = new Person({
     name: body.name,
     number: body.number,
@@ -69,13 +66,14 @@ app.post('/api/persons', (request, response, next) => {
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
-  const { name, number } = request.body
+  const body = request.body
 
-  Person.findByIdAndUpdate(
-    request.params.id, 
-    { name, number }, 
-    { new: true, runValidators: true, context: 'query' }
-  )
+  const person = {
+    name: body.name,
+    number: body.number,
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, { new: true, runValidators: true, context: 'query' })
     .then(updatedPerson => {
       response.json(updatedPerson)
     })
@@ -85,6 +83,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
+
 app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
@@ -98,6 +97,7 @@ const errorHandler = (error, request, response, next) => {
 
   next(error)
 }
+
 app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
