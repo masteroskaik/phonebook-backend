@@ -19,13 +19,6 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-app.get('/info', (request, response) => {
-  Person.countDocuments({}).then(count => {
-    const date = new Date()
-    response.send(`<p>Phonebook has info for ${count} people</p><p>${date}</p>`)
-  })
-})
-
 app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then(person => {
@@ -38,25 +31,10 @@ app.get('/api/persons/:id', (request, response, next) => {
     .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response, next) => {
-  Person.findByIdAndDelete(request.params.id)
-    .then(() => {
-      response.status(204).end()
-    })
-    .catch(error => next(error))
-})
-
 app.post('/api/persons', (request, response, next) => {
-  const body = request.body
+  const { name, number } = request.body
 
-  if (!body.name || !body.number) {
-    return response.status(400).json({ error: 'name or number missing' })
-  }
-
-  const person = new Person({
-    name: body.name,
-    number: body.number,
-  })
+  const person = new Person({ name, number })
 
   person.save()
     .then(savedPerson => {
@@ -66,16 +44,23 @@ app.post('/api/persons', (request, response, next) => {
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
-  const body = request.body
+  const { name, number } = request.body
 
-  const person = {
-    name: body.name,
-    number: body.number,
-  }
-
-  Person.findByIdAndUpdate(request.params.id, person, { new: true, runValidators: true, context: 'query' })
+  Person.findByIdAndUpdate(
+    request.params.id, 
+    { name, number }, 
+    { new: true, runValidators: true, context: 'query' }
+  )
     .then(updatedPerson => {
       response.json(updatedPerson)
+    })
+    .catch(error => next(error))
+})
+
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndDelete(request.params.id)
+    .then(() => {
+      response.status(204).end()
     })
     .catch(error => next(error))
 })
@@ -83,7 +68,6 @@ app.put('/api/persons/:id', (request, response, next) => {
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
-
 app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
@@ -97,7 +81,6 @@ const errorHandler = (error, request, response, next) => {
 
   next(error)
 }
-
 app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001

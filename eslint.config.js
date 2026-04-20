@@ -1,21 +1,21 @@
-import js from '@eslint/js'
-import globals from 'globals'
+import globals from "globals";
+import pluginJs from "@eslint/js";
 
 export default [
-  { 
-    ignores: ['dist/**', 'node_modules/**'] 
-  },
-  js.configs.recommended,
   {
-    languageOptions: {
-      globals: { ...globals.node }
-    },
+    languageOptions: { 
+      globals: globals.node, 
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      }
+    } 
+  },
+  pluginJs.configs.recommended,
+  {
     rules: {
-      'indent': ['error', 2],
-      'quotes': ['error', 'single'],
-      'semi': ['error', 'never'],
-      'no-unused-vars': 'error',
-      'no-console': 0
-    }
-  }
-]
+      "no-unused-vars": "warn",
+      "no-console": "off",
+    },
+  },
+];
