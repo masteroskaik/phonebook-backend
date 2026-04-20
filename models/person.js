@@ -1,17 +1,17 @@
-const mongoose = require('mongoose')
+import mongoose from 'mongoose'
 
 mongoose.set('strictQuery', false)
 
 const url = process.env.MONGODB_URI
 
-console.log('Connecting to', url)
+console.log('connecting to', url)
 
 mongoose.connect(url)
-  .then(() => {
-    console.log('Connected to MongoDB')
+  .then(result => {
+    console.log('connected to MongoDB')
   })
   .catch((error) => {
-    console.log('Error connecting to MongoDB:', error.message)
+    console.log('error connecting to MongoDB:', error.message)
   })
 
 const personSchema = new mongoose.Schema({
@@ -23,13 +23,7 @@ const personSchema = new mongoose.Schema({
   number: {
     type: String,
     minLength: 8,
-    required: true,
-    validate: {
-      validator: function(v) {
-        return /\d{2,3}-\d+/.test(v)
-      },
-      message: props => `${props.value} n'est pas un numéro valide !`
-    }
+    required: true
   }
 })
 
@@ -41,4 +35,4 @@ personSchema.set('toJSON', {
   }
 })
 
-module.exports = mongoose.model('Person', personSchema)
+export default mongoose.model('Person', personSchema)
