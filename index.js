@@ -3,7 +3,7 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const path = require('path')
-const Person = require('./models/person')
+const Person = require('./models/person.js')
 
 const app = express()
 
